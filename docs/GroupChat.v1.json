@@ -1,0 +1,1562 @@
+{
+  "openapi": "3.1.0",
+  "x-stoplight": {
+    "id": "49ikswm9ktjmm"
+  },
+  "info": {
+    "title": "Group Chat NodeJS API Service",
+    "version": "1.0",
+    "summary": "This service will provide various apis to serve a group messaging service",
+    "description": "We can create users, create groups and send messages"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "localServer"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health Endpoint",
+        "tags": [
+          "Health"
+        ],
+        "responses": {},
+        "operationId": "get-health",
+        "description": "To check whether service is running or not"
+      }
+    },
+    "/auth/{userName}/login": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "format": "email"
+          },
+          "name": "userName",
+          "in": "path",
+          "required": true,
+          "description": "The email address of the user."
+        }
+      ],
+      "post": {
+        "summary": "Login for a user",
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "cookie": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "session id will be generated for the user"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "emailId": {
+                      "type": "string"
+                    },
+                    "admin": {
+                      "type": "boolean"
+                    },
+                    "userId": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "name": "Second User",
+                      "emailId": "secondTestUser@gmail.com",
+                      "admin": false,
+                      "userId": "secondTestUser@gmail.com"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid email/password"
+          }
+        },
+        "operationId": "login-auth-userName",
+        "description": "This endpoint is used to authenticate a user with the provided email and password.\n\nit will generate session which will be a cookie (sessionId)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "emailId": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "km2n94wz2t6wd"
+                    },
+                    "description": "The email address of the user."
+                  },
+                  "password": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "i95oj6g5nw9ot"
+                    },
+                    "description": "The password for the user's account."
+                  }
+                },
+                "required": [
+                  "emailId",
+                  "password"
+                ]
+              }
+            }
+          },
+          "description": "Request Body which is used to authenticate the user.\n"
+        }
+      }
+    },
+    "/auth/{userName}/logout": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "format": "email"
+          },
+          "name": "userName",
+          "in": "path",
+          "required": true,
+          "description": "The email address of the user."
+        }
+      ],
+      "post": {
+        "summary": "Logout for a user",
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully logged out"
+          }
+        },
+        "operationId": "log-out-auth-userName",
+        "description": "This endpoint is used to clear the session of a user and logging out.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "cookie",
+            "name": "sessionId",
+            "description": "JWT Token"
+          }
+        ]
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "summary": "Get current user information (i.e. admin)",
+        "tags": [
+          "Admin APIs"
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/200-User-Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/401-Unauthorized-Error"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "name": "NOT_FOUND",
+                      "statusCode": 404,
+                      "message": "User not found with id admin%40gmail.com, "
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-admin-users",
+        "description": "This API endpoint is used to retrieve user(admin) details.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "x-user-id",
+            "description": "emailId of admin",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "adminToken": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create Normal User",
+        "operationId": "post-admin-users",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/200-User-Response"
+          },
+          "400": {
+            "$ref": "#/components/responses/400-Invalid-Data"
+          },
+          "401": {
+            "$ref": "#/components/responses/401-Unauthorized-Error"
+          }
+        },
+        "description": "This endpoint is used by admin to create a new user.\n",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "x-examples": {
+                  "Example 1": {
+                    "emailId": "testUser2@gmail.com",
+                    "password": "admin",
+                    "name": "Test User"
+                  }
+                },
+                "properties": {
+                  "emailId": {
+                    "type": "string",
+                    "description": "The email address of the user."
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "The password for the user account."
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "The name of the user."
+                  }
+                },
+                "required": [
+                  "emailId",
+                  "password",
+                  "name"
+                ]
+              }
+            }
+          },
+          "description": ""
+        },
+        "security": [
+          {
+            "adminToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "x-user-id",
+            "description": "emailId of the admin",
+            "required": true
+          }
+        ],
+        "tags": [
+          "Admin APIs"
+        ]
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "Get Current LoggedIn User Details",
+        "tags": [
+          "Normal User APIs"
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/200-User-Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/401-Unauthorized-Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/404-Not-found"
+          }
+        },
+        "operationId": "get-users",
+        "description": "This endpoint will give the details about the current logged in user.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/sessionId"
+          }
+        ],
+        "requestBody": {
+          "content": {}
+        }
+      }
+    },
+    "/users/info": {
+      "get": {
+        "summary": "Get Members/Liked Users By EmailIds",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "x-examples": {
+                    "Example 1": [
+                      {
+                        "_id": "66cff2a0548af85e84688eda",
+                        "name": "First User",
+                        "emailId": "firstUser@gmail.com",
+                        "admin": false,
+                        "createdAt": "2024-08-29T04:01:41.697Z",
+                        "updatedAt": "2024-08-29T04:01:41.697Z",
+                        "__v": 0
+                      },
+                      {
+                        "_id": "66cff45048e93c9adc700245",
+                        "name": "Second User",
+                        "emailId": "secondTestUser@gmail.com",
+                        "admin": false,
+                        "createdAt": "2024-08-29T04:08:48.821Z",
+                        "updatedAt": "2024-08-29T04:08:48.821Z",
+                        "__v": 0
+                      },
+                      {
+                        "_id": "66cff4852187aa00a5ef7def",
+                        "name": "Test User",
+                        "emailId": "testUser@gmail.com",
+                        "admin": false,
+                        "createdAt": "2024-08-29T04:09:41.384Z",
+                        "updatedAt": "2024-08-29T04:09:41.384Z",
+                        "__v": 0
+                      }
+                    ]
+                  },
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "_id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "emailId": {
+                        "type": "string"
+                      },
+                      "admin": {
+                        "type": "boolean"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      },
+                      "updatedAt": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401-Unauthorized-Error"
+          }
+        },
+        "operationId": "get-users-info",
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "userId",
+            "required": true
+          },
+          {
+            "$ref": "#/components/parameters/sessionId"
+          }
+        ],
+        "description": "This endpoint makes a GET request to retrieve information about multiple users by providing their user IDs as query parameters.",
+        "tags": [
+          "Normal User APIs"
+        ]
+      }
+    },
+    "/users/search": {
+      "get": {
+        "summary": "Retrieve Users by Search Text",
+        "tags": [
+          "Normal User APIs"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "x-examples": {
+                    "Example 1": [
+                      {
+                        "_id": "66cff2a0548af85e84688eda",
+                        "name": "First User",
+                        "emailId": "firstUser@gmail.com",
+                        "admin": false,
+                        "createdAt": "2024-08-29T04:01:41.697Z",
+                        "updatedAt": "2024-08-29T04:01:41.697Z",
+                        "__v": 0
+                      },
+                      {
+                        "_id": "66cff45048e93c9adc700245",
+                        "name": "Second User",
+                        "emailId": "secondTestUser@gmail.com",
+                        "admin": false,
+                        "createdAt": "2024-08-29T04:08:48.821Z",
+                        "updatedAt": "2024-08-29T04:08:48.821Z",
+                        "__v": 0
+                      },
+                      {
+                        "_id": "66cff4852187aa00a5ef7def",
+                        "name": "Test User",
+                        "emailId": "testUser@gmail.com",
+                        "admin": false,
+                        "createdAt": "2024-08-29T04:09:41.384Z",
+                        "updatedAt": "2024-08-29T04:09:41.384Z",
+                        "__v": 0
+                      }
+                    ]
+                  },
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "_id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "emailId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401-Unauthorized-Error"
+          }
+        },
+        "operationId": "get-users-search",
+        "description": "This endpoint retrieves a list of users based on the search text provided in the query parameter.\n",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "searchText",
+            "description": "Search Text used to search across the users"
+          },
+          {
+            "$ref": "#/components/parameters/sessionId"
+          }
+        ]
+      }
+    },
+    "/groups": {
+      "get": {
+        "summary": "List of groups for a user",
+        "tags": [
+          "Groups"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "x-examples": {
+                    "Example 1": [
+                      {
+                        "_id": "66cfff88046a81e0f16677f0",
+                        "name": "Google Bard Discussion",
+                        "description": "The group is related to google bard related discussions"
+                      },
+                      {
+                        "_id": "66d004c0e11d357b83cea547",
+                        "name": "google ai discussion"
+                      }
+                    ]
+                  },
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "_id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "_id",
+                      "name"
+                    ]
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "_id": "66cfff88046a81e0f16677f0",
+                        "name": "Google Bard Discussion",
+                        "description": "The group is related to google bard related discussions"
+                      },
+                      {
+                        "_id": "66d004c0e11d357b83cea547",
+                        "name": "google ai discussion"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401-Unauthorized-Error"
+          }
+        },
+        "operationId": "get-groups",
+        "description": "This endpoint makes a GET request to retrieve a list of all groups (if it is created by him/he is a member of group).",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/sessionId"
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create a New Group",
+        "operationId": "post-groups",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "Example 1": {
+                      "name": "google bard discussion",
+                      "members": [],
+                      "createdBy": "secondTestUser@gmail.com",
+                      "_id": "66d0bd015f4c4c8e09c709e8",
+                      "createdAt": "2024-08-29T18:25:05.192Z",
+                      "updatedAt": "2024-08-29T18:25:05.192Z",
+                      "__v": 0
+                    }
+                  },
+                  "properties": {
+                    "_id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "email"
+                      }
+                    },
+                    "createdBy": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "name": "google bard discussion",
+                      "members": [],
+                      "createdBy": "secondTestUser@gmail.com",
+                      "_id": "66d0bd015f4c4c8e09c709e8",
+                      "createdAt": "2024-08-29T18:25:05.192Z",
+                      "updatedAt": "2024-08-29T18:25:05.192Z",
+                      "__v": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401-Unauthorized-Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/400-Invalid-Data"
+          }
+        },
+        "description": "This endpoint is used to create a new group with group nam.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/sessionId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "groupName": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "q7snpcg76hkkb"
+                    }
+                  }
+                },
+                "required": [
+                  "groupName"
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "groupName": "Google AI Discussion"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Groups"
+        ]
+      }
+    },
+    "/groups/{groupId}": {
+      "put": {
+        "summary": "Update Group Information",
+        "operationId": "put-groups-:groupId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "Example 1": {
+                      "_id": "66d0bd015f4c4c8e09c709e8",
+                      "name": "Google Gemini Discussion",
+                      "members": [],
+                      "createdBy": "secondTestUser@gmail.com",
+                      "createdAt": "2024-08-29T18:25:05.192Z",
+                      "updatedAt": "2024-08-29T18:30:48.787Z",
+                      "__v": 0,
+                      "description": "The group is related to google gemini related discussions"
+                    }
+                  },
+                  "properties": {
+                    "_id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "email"
+                      }
+                    },
+                    "createdBy": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "_id": "66d0bd015f4c4c8e09c709e8",
+                      "name": "Google Gemini Discussion",
+                      "members": [],
+                      "createdBy": "secondTestUser@gmail.com",
+                      "createdAt": "2024-08-29T18:25:05.192Z",
+                      "updatedAt": "2024-08-29T18:30:48.787Z",
+                      "description": "The group is related to google gemini related discussions"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401-Unauthorized-Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/404-Not-found"
+          }
+        },
+        "tags": [
+          "Groups"
+        ],
+        "description": "This endpoint allows the user to update the details of a specific group.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/sessionId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "98ln0qjdtj0od"
+                    }
+                  },
+                  "name": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "73utcsnxyvnon"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "description": "Name/Description should be provied to update the group information"
+        }
+      },
+      "delete": {
+        "summary": "Delete Group of a user",
+        "operationId": "delete-groups-:groupId",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/401-Unauthorized-Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/404-Not-found"
+          }
+        },
+        "tags": [
+          "Groups"
+        ],
+        "description": "This endpoint is used to delete a specific group and messages related to it.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/sessionId"
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "groupId",
+          "in": "path",
+          "required": true,
+          "description": "id of the group"
+        }
+      ]
+    },
+    "/groups/{groupId}/members": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "groupId",
+          "in": "path",
+          "required": true,
+          "description": "id of the group"
+        }
+      ],
+      "get": {
+        "summary": "Get Group members",
+        "tags": [
+          "Groups"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of users details(members)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "x-examples": {
+                    "Example 1": [
+                      {
+                        "_id": "66cff45048e93c9adc700245",
+                        "name": "Second User",
+                        "emailId": "secondTestUser@gmail.com",
+                        "admin": false,
+                        "createdAt": "2024-08-29T04:08:48.821Z",
+                        "updatedAt": "2024-08-29T04:08:48.821Z",
+                        "__v": 0
+                      }
+                    ]
+                  },
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "_id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "emailId": {
+                        "type": "string"
+                      },
+                      "admin": {
+                        "type": "boolean"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      },
+                      "updatedAt": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401-Unauthorized-Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/404-Not-found"
+          }
+        },
+        "operationId": "get-groups-groupId-members",
+        "description": "This endpoint retrieves the members of a specific group identified by the provided group ID.\n\nYou can search members using search query also.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/sessionId"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "searchText",
+            "description": "Search text to filter members",
+            "allowEmptyValue": true
+          }
+        ]
+      },
+      "put": {
+        "summary": "Add Members to Group",
+        "operationId": "put-groups-groupId-members",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/sessionId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userIds": {
+                    "type": "array",
+                    "x-stoplight": {
+                      "id": "4z6bwbz44f23m"
+                    },
+                    "items": {
+                      "x-stoplight": {
+                        "id": "dbvhgg2uz9x3v"
+                      },
+                      "type": "string",
+                      "format": "email"
+                    }
+                  }
+                },
+                "required": [
+                  "userIds"
+                ]
+              }
+            }
+          },
+          "description": ""
+        },
+        "description": "This endpoint allows the addition of members to a specific group.\n\nAny user can update members of the group which he has access to (either created/member)",
+        "tags": [
+          "Groups"
+        ]
+      },
+      "delete": {
+        "summary": "Remove Members from Group",
+        "operationId": "delete-groups-groupId-members",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "Example 1": {
+                      "_id": "66d0bd015f4c4c8e09c709e8",
+                      "name": "Google Gemini Discussion",
+                      "members": [],
+                      "createdBy": "secondTestUser@gmail.com",
+                      "createdAt": "2024-08-29T18:25:05.192Z",
+                      "updatedAt": "2024-08-29T18:30:48.787Z",
+                      "__v": 0,
+                      "description": "The group is related to google gemini related discussions"
+                    }
+                  },
+                  "properties": {
+                    "_id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "email"
+                      }
+                    },
+                    "createdBy": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401-Unauthorized-Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/404-Not-found"
+          }
+        },
+        "description": "Only group creators can remove members from groups.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/sessionId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userIds": {
+                    "type": "array",
+                    "x-stoplight": {
+                      "id": "n9cfvozuwvv2e"
+                    },
+                    "items": {
+                      "x-stoplight": {
+                        "id": "2hdcjntay0dyl"
+                      },
+                      "type": "string",
+                      "format": "email"
+                    }
+                  }
+                },
+                "required": [
+                  "userIds"
+                ]
+              }
+            }
+          },
+          "description": "Members to remove"
+        },
+        "tags": [
+          "Groups"
+        ]
+      }
+    },
+    "/groups/{groupId}/messages": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "groupId",
+          "in": "path",
+          "required": true,
+          "description": "id of the group"
+        }
+      ],
+      "get": {
+        "summary": "Retrive messages in group",
+        "tags": [
+          "Group Messages"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of messages which are sorted in last posted order (currently limited to last 50)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/List-of-Messages"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401-Unauthorized-Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/404-Not-found"
+          }
+        },
+        "operationId": "get-groups-groupId-messages",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/sessionId"
+          }
+        ],
+        "description": "This endpoint retrieves the messages for a specific group in last posted order.\n\nAny user in the group can see the messages."
+      },
+      "post": {
+        "summary": "Send Message In a Group",
+        "operationId": "post-groups-groupId-messages",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401-Unauthorized-Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/404-Not-found"
+          }
+        },
+        "description": "The endpoint allows the user to sends a new message within a specific group.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/sessionId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "3yuiwvm63rx9h"
+                    }
+                  }
+                },
+                "required": [
+                  "message"
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Group Messages"
+        ]
+      }
+    },
+    "/groups/{groupId}/messages/{messageId}/like": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "groupId",
+          "in": "path",
+          "required": true,
+          "description": "id of the group"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "messageId",
+          "in": "path",
+          "required": true,
+          "description": "id of the message which you want to like/dislike"
+        }
+      ],
+      "post": {
+        "summary": "Like Message In a group",
+        "operationId": "post-groups-groupId-messages-messageId-like",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401-Unauthorized-Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/404-Not-found"
+          }
+        },
+        "description": "This endpoint allows users to like a specific message within a group.\n\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/sessionId"
+          }
+        ],
+        "tags": [
+          "Group Messages"
+        ]
+      }
+    },
+    "/groups/{groupId}/messages/{messageId}/dislike": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "groupId",
+          "in": "path",
+          "required": true,
+          "description": "id of the group"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "messageId",
+          "in": "path",
+          "required": true,
+          "description": "id of the message you want to like/dislike"
+        }
+      ],
+      "post": {
+        "summary": "Dislike the message in group",
+        "operationId": "post-groups-groupId-messages-messageId-dislike",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401-Unauthorized-Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/404-Not-found"
+          }
+        },
+        "description": "This endpoint allows the user to submit a dislike for a specific message within a group.\n\n",
+        "tags": [
+          "Group Messages"
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "title": "User",
+        "type": "object",
+        "examples": [
+          {
+            "_id": "66d04fcf83da677262a9a991",
+            "name": "Alice Smith",
+            "email": "alice.smith@gmail.com",
+            "admin": false,
+            "createdAt": "2024-08-27T07:18:27.186907Z"
+          }
+        ],
+        "properties": {
+          "_id": {
+            "type": "integer",
+            "description": "Unique identifier for the given user.",
+            "x-stoplight": {
+              "id": "hfu2vtqehfcvy"
+            }
+          },
+          "name": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "gilzzhxvgyl68"
+            }
+          },
+          "emailId": {
+            "type": "string",
+            "format": "email",
+            "x-stoplight": {
+              "id": "r1nlcbh86foa6"
+            }
+          },
+          "password": {
+            "type": "string",
+            "example": "1997-10-31",
+            "x-stoplight": {
+              "id": "tp0dzgmxrcej8"
+            }
+          },
+          "admin": {
+            "type": "boolean",
+            "description": "Set to true if the user's email has been verified.",
+            "x-stoplight": {
+              "id": "jfcytoh44dayx"
+            }
+          },
+          "createAt": {
+            "type": "number",
+            "format": "date",
+            "description": "The date that the user was created.",
+            "x-stoplight": {
+              "id": "g7rhm8zabjvn9"
+            }
+          }
+        },
+        "required": [
+          "_id",
+          "name",
+          "emailId",
+          "password",
+          "admin"
+        ]
+      },
+      "Message": {
+        "type": "object",
+        "x-examples": {
+          "Example 1": {
+            "_id": "66d005ddffe4c9e107d9181a",
+            "message": "Maybe ",
+            "likes": [],
+            "createdBy": "secondTestUser@gmail.com",
+            "createdAt": "2024-08-29T05:23:41.112Z"
+          }
+        },
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "likes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "description": "Message object"
+      },
+      "List-of-Messages": {
+        "title": "List-of-Messages",
+        "x-stoplight": {
+          "id": "1t1nix75d3fnm"
+        },
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Message",
+          "x-stoplight": {
+            "id": "inyb2rzv98cin"
+          }
+        },
+        "description": "List of messages"
+      }
+    },
+    "securitySchemes": {
+      "adminToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Admin Token to access Admin APIs"
+      }
+    },
+    "responses": {
+      "401-Unauthorized-Error": {
+        "description": "you are not authorized to access this request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "statusCode": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "x-examples": {
+                "Example 1": {
+                  "name": "NOT_FOUND",
+                  "statusCode": 404,
+                  "message": "User not found with id admin%40gmail.com, "
+                }
+              }
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "name": "INVALID_SESSION",
+                  "statusCode": 404,
+                  "message": "You are not authorized to access this request"
+                }
+              }
+            }
+          }
+        }
+      },
+      "200-User-Response": {
+        "description": "When user is created, this response will be returned",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "x-examples": {
+                "Example 1": {
+                  "password": "04d43793-e0ba-53de-89ac-842d968e84bd",
+                  "name": "Test User",
+                  "emailId": "testUser2@gmail.com",
+                  "admin": false,
+                  "_id": "66d0ad94a679a0c914697be0",
+                  "createdAt": "2024-08-29T17:19:16.382Z",
+                  "updatedAt": "2024-08-29T17:19:16.382Z",
+                  "__v": 0
+                }
+              },
+              "properties": {
+                "_id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "emailId": {
+                  "type": "string"
+                },
+                "admin": {
+                  "type": "boolean"
+                },
+                "createdAt": {
+                  "type": "string"
+                },
+                "updatedAt": {
+                  "type": "string"
+                }
+              }
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "_id": "66d0ad94a679a0c914697be0",
+                  "name": "Test User",
+                  "emailId": "testUser2@gmail.com",
+                  "admin": false,
+                  "createdAt": "2024-08-29T17:19:16.382Z",
+                  "updatedAt": "2024-08-29T17:19:16.382Z"
+                }
+              }
+            }
+          }
+        },
+        "headers": {}
+      },
+      "400-Invalid-Data": {
+        "description": "Invalid Data provided, please check your data \n\nif provided details are already existed/you didn't provide correct information this error will occur",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "statusCode": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "payload": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              "x-examples": {
+                "Example 1": {
+                  "name": "INVALID_DATA",
+                  "statusCode": 400,
+                  "message": "please provide valid details",
+                  "payload": {}
+                }
+              }
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "name": "INVALID_DATA",
+                  "statusCode": 400,
+                  "message": "please provide valid details",
+                  "payload": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "404-Not-found": {
+        "description": "This error will be thrown if there is no details found with the given parameters.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "statusCode": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "payload": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              "x-examples": {
+                "Example 1": {
+                  "name": "INVALID_DATA",
+                  "statusCode": 400,
+                  "message": "please provide valid details",
+                  "payload": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "sessionId": {
+        "name": "sessionId",
+        "in": "cookie",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "JWT Session Token of the user"
+      }
+    }
+  },
+  "security": []
+}
