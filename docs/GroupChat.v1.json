@@ -13,6 +13,10 @@
     {
       "url": "http://localhost:3000",
       "description": "localServer"
+    },
+    {
+      "url": "https://group-chat-yu3k.onrender.com",
+      "description": "renderServer"
     }
   ],
   "paths": {
