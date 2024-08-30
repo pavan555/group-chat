@@ -48,7 +48,7 @@ The Group Chat NodeJS API Service provides a comprehensive set of APIs to suppor
 
 ### Prerequisites
 - **Node.js**: Ensure Node.js is installed.
-- **npm**: Install Node Package Manager.
+- **pnpm**: Install Node Package Manager.
 - **MongoDB**: Set up a MongoDB database.
 
 ### Installation
