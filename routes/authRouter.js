@@ -6,7 +6,7 @@ const { loginUser } = require("../services/user-service");
 
 const { Router } = require("express");
 const authRouter = new Router({ mergeParams: true });
-const R = require('ramda');
+const R = require("ramda");
 
 authRouter.post("/login", async (req, res, next) => {
   console.log("authRouter : Login for user name", req.params.userName);
@@ -14,18 +14,14 @@ authRouter.post("/login", async (req, res, next) => {
     .then(async (resp) => {
       const user = resp;
       const keys = ["name", "emailId", "admin"];
-      let principal = R.assoc(
-        "userId",
-        user.emailId,
-        R.pick(keys, user)
-      );
+      let principal = R.assoc("userId", user.emailId, R.pick(keys, user));
       const token = await generateToken(principal, principal.emailId);
       res.cookie(
         SESSION_ID_KEY,
         token,
         cookieOptions({ maxAge: SESSION_TIME_OUT * 1000 })
       );
-      return res.json(principal);
+      return res.json({ ...principal, token: token });
     })
     .catch(next);
 });
@@ -40,6 +36,5 @@ authRouter.post("/logout", async (req, res, next) => {
     })
     .catch(next);
 });
-
 
 export default authRouter;
