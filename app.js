@@ -26,8 +26,9 @@ import { getBaseUrlFromRequest } from "./utils/generic-utils";
 const debug = require("debug")("app");
 const express = require("express");
 const app = express();
+const path = require("path");
 
-const R = require('ramda');
+const R = require("ramda");
 const swaggerUi = require("swagger-ui-express");
 
 const swaggerOptions = {
@@ -63,7 +64,9 @@ app.use(cookieParser());
 app.use("/", indexRouter);
 
 app.get("/api-docs/swagger.json", (req, res, next) => {
-  const swaggerDocument = require(`./docs/Groupchat.v1.json`);
+  const swaggerDocument = require(path.join(
+    path.resolve(__dirname) + `/docs/Groupchat.v1.json`
+  ));
   const servers = [
     {
       url: `${getBaseUrlFromRequest(req)}`,
