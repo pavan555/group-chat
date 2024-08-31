@@ -18,6 +18,8 @@ The Group Chat NodeJS API Service provides a comprehensive set of APIs to suppor
 - **POST /auth/{userName}/login**: Authenticate a user and start a session.
 - **POST /auth/{userName}/logout**: Logout a user and end the session.
 
+### **You can Access Admin API's** via Admin Token which is ``@Pavan!@389$``
+
 ### User Management
 - **GET /admin/users**: Retrieve the current admin's details.
 - **POST /admin/users**: Create a new user.
@@ -98,6 +100,7 @@ Ensure to configure the following environment variables:
 
 ### Pre Setup Data
 Currently admin user is pre-populated with this following details if not exists in connected mongoDB
+
 ```json
 {
     "_id": "66b47ff577c995118548f41e",
